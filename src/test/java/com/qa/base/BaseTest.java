@@ -1,10 +1,9 @@
 package com.qa.base;
 
 import com.microsoft.playwright.*;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.*;
+
+import java.nio.file.Paths;
 
 public class BaseTest {
 
@@ -33,8 +32,11 @@ public class BaseTest {
         }
 
         @AfterEach
-        void closeContext() {
-            context.close();
+            void closeContext(TestInfo testInfo) {
+                page.screenshot(new Page.ScreenshotOptions()
+                        .setPath(Paths.get("target/screenshots/" + testInfo.getDisplayName() + ".png"))
+                        .setFullPage(true));
+                context.close();
         }
 
 
