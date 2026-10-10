@@ -9,9 +9,50 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      BASE_URL: http://localhost:4200
+
     steps:
-      - name: Check out the repository
+      - name: Check out the test project
         uses: actions/checkout@v4
+
+      - name: Check out the Toolshop application
+        uses: actions/checkout@v4
+        with:
+          repository: testsmith-io/practice-software-testing
+          path: toolshop
+
+      - name: Start the Toolshop containers
+        working-directory: toolshop
+        run: docker compose -f docker-compose.yml up -d
+
+      - name: Install the API dependencies
+        working-directory: toolshop
+        run: |
+          sleep 30
+          docker compose exec -T -u root laravel-api composer install --no-dev --optimize-autoloader --ignore-platform-req=ext-ffi
+
+      - name: Wait for the database
+        working-directory: toolshop
+        run: |
+          for i in $(seq 1 30); do
+            docker compose exec -T mariadb mysqladmin ping -h localhost -u root -proot --silent && break
+            echo "Database not ready ($i/30)"; sleep 2
+          done
+
+      - name: Create and seed the database
+        working-directory: toolshop
+        run: docker compose exec -T laravel-api php artisan migrate:fresh --seed --force
+
+      - name: Wait for the UI
+        working-directory: toolshop
+        run: |
+          for i in $(seq 1 60); do
+            curl -s -o /dev/null -w "%{http_code}" http://localhost:4200 | grep -q 200 && exit 0
+            echo "UI not ready ($i/60)"; sleep 5
+          done
+          docker compose logs angular-ui
+          exit 1
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -20,16 +61,16 @@ jobs:
           java-version: '17'
           cache: maven
 
-      - name: Download dependencies
+      - name: Install the dependencies
         run: mvn -B install -DskipTests --no-transfer-progress
 
-      - name: Install Playwright browsers
+      - name: Install the Playwright browsers
         run: mvn -B exec:java -e -D exec.mainClass=com.microsoft.playwright.CLI -D exec.args="install --with-deps"
 
-      - name: Run tests
+      - name: Run the tests
         run: mvn -B test --no-transfer-progress
 
-      - name: Upload test reports
+      - name: Upload the test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:

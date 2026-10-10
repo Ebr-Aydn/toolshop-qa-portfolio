@@ -2,6 +2,7 @@ package com.qa.pages;
 
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
+import com.qa.config.Config;
 
 public class HomePage {
 
@@ -18,7 +19,7 @@ public class HomePage {
     }
 
     public void open() {
-        page.navigate("https://practicesoftwaretesting.com/");
+        page.navigate(Config.BASE_URL);
     }
 
     public void searchProducts(String searchTerm) {

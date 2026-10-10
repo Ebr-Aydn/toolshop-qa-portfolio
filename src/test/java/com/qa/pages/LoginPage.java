@@ -2,6 +2,7 @@ package com.qa.pages;
 
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
+import com.qa.config.Config;
 
 
 public class LoginPage {
@@ -25,7 +26,7 @@ public class LoginPage {
     }
 
     public void open() {
-        page.navigate("https://practicesoftwaretesting.com/auth/login");
+        page.navigate(Config.BASE_URL + "/auth/login");
     }
 
     public void loginAs(String email, String password) {
