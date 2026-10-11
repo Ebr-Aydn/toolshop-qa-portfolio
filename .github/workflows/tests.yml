@@ -2,7 +2,7 @@ name: UI Tests
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   pull_request:
   workflow_dispatch:
 
@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       BASE_URL: http://localhost:4200
+      DISABLE_LOGGING: "true"
 
     steps:
       - name: Check out the test project
@@ -43,6 +44,10 @@ jobs:
       - name: Create and seed the database
         working-directory: toolshop
         run: docker compose exec -T laravel-api php artisan migrate:fresh --seed --force
+      - name: Check the API
+        run: |
+          curl -sf http://localhost:8091/status
+          curl -sf http://localhost:8091/products | head -c 300
 
       - name: Wait for the UI
         working-directory: toolshop
@@ -78,3 +83,8 @@ jobs:
           path: |
             target/surefire-reports
             target/screenshots
+
+      - name: Show the container logs
+        if: failure()
+        working-directory: toolshop
+        run: docker compose logs laravel-api web --tail=100
