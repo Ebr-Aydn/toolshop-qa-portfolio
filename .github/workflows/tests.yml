@@ -46,8 +46,11 @@ jobs:
         run: docker compose exec -T laravel-api php artisan migrate:fresh --seed --force
       - name: Check the API
         run: |
-          curl -sf http://localhost:8091/status
-          curl -sf http://localhost:8091/products | head -c 300
+          curl -s http://localhost:8091/status; echo
+          code=$(curl -s -o products.json -w "%{http_code}" http://localhost:8091/products)
+          echo "GET /products -> HTTP $code"
+          head -c 500 products.json; echo
+          [ "$code" = "200" ]
 
       - name: Wait for the UI
         working-directory: toolshop
