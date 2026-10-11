@@ -23,6 +23,10 @@ jobs:
           repository: testsmith-io/practice-software-testing
           path: toolshop
 
+      - name: Make the API storage writable
+        working-directory: toolshop/sprint5/API
+        run: chmod -R 777 storage bootstrap/cache
+
       - name: Start the Toolshop containers
         working-directory: toolshop
         run: docker compose -f docker-compose.yml up -d
