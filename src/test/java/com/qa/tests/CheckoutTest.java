@@ -17,7 +17,6 @@ public class CheckoutTest extends BaseTest {
     private CheckoutPage checkoutPage;
 
 
-
     @BeforeEach
     void addProductToCart() {
         homePage = new HomePage(page);
@@ -39,7 +38,7 @@ public class CheckoutTest extends BaseTest {
     @DisplayName("Registered user - positive payment scenarios")
     class registeredUser {
         @BeforeEach
-        void loginCredentials(){
+        void loginCredentials() {
             loginPage.loginAs("customer@practicesoftwaretesting.com", "welcome01");
             checkoutPage.checkOutButtonForRegisteredUser();
             checkoutPage.billingAdress("Sweden", "41712", "3D", "Linnébacken", "Rolfs", "Sweden");
@@ -51,31 +50,9 @@ public class CheckoutTest extends BaseTest {
             checkoutPage.bankTransfer("Nordea", "123456677", "678911234");
         }
 
-        @Test
-        void cashOnDeliverySucceeds(){
-            checkoutPage.cashOnDelivery();
-        }
-
-        @Test
-        void creditCardSucceeds(){
-            checkoutPage.creditCardPayment("5555-5555-5555-5555", "12/2030", "123", "Test Test");
-        }
-
-
-        @ParameterizedTest(name ="Buy Now Pay Later with {0} months") //this helps to test different int values saparetly
-        @ValueSource(ints={3,6,9,12})
-        void buyNowPayLaterPaymentSucceeds(int month){
-            checkoutPage.buyNowPayLaterOption(month);
-        }
-
-        @Test
-        void giftCardPaymentSucceeds(){
-            checkoutPage.giftCardPayment("1234567890123456", "ASCV");
-        }
-
-
         @AfterEach
-        void orderMessagesSucceeds(){
+        void orderMessagesSucceeds() {
+            checkoutPage.cofirmClickingPaymentButtons();
             assertThat(checkoutPage.paymentMessage()).hasText("Payment was successful");  //hasText - text should be exactly same with the result
             assertThat(checkoutPage.confirm()).containsText("Thanks for your order! Your invoice number is "); //containsText check "xxx" containes in the result
         }
@@ -86,7 +63,7 @@ public class CheckoutTest extends BaseTest {
     @DisplayName("Guest user - positive payment scenarios")
     class guestUser {
         @BeforeEach
-        void guestLoginAndAdressProcess(){
+        void guestLoginAndAdressProcess() {
             checkoutPage.continueAsGuest("ay@example.com", "Test", "Test");
             checkoutPage.billingAdress("Sweden", "41712", "3D", "Linnébacken", "Rolfs", "Sweden");
         }
@@ -97,30 +74,32 @@ public class CheckoutTest extends BaseTest {
         }
 
         @Test
-        void cashOnDeliverySucceeds(){
+        void cashOnDeliverySucceeds() {
             checkoutPage.cashOnDelivery();
         }
 
         @Test
-        void creditCardSucceeds(){
+        void creditCardSucceeds() {
             checkoutPage.creditCardPayment("5555-5555-5555-5555", "12/2030", "123", "Test Test");
         }
 
 
-        @ParameterizedTest(name ="Buy Now Pay Later with {0} months") //this helps to test different int values saparetly
-        @ValueSource(ints={3,6,9,12})
-        void buyNowPayLaterPaymentSucceeds(int month){
+        @ParameterizedTest(name = "Buy Now Pay Later with {0} months")
+        //this helps to test different int values saparetly
+        @ValueSource(ints = {3, 6, 9, 12})
+        void buyNowPayLaterPaymentSucceeds(int month) {
             checkoutPage.buyNowPayLaterOption(month);
         }
 
         @Test
-        void giftCardPaymentSucceeds(){
+        void giftCardPaymentSucceeds() {
             checkoutPage.giftCardPayment("1234567890123456", "ASCV");
         }
 
 
         @AfterEach
-        void orderMessagesSucceeds(){
+        void orderMessagesSucceeds() {
+            checkoutPage.cofirmClickingPaymentButtons();
             assertThat(checkoutPage.paymentMessage()).hasText("Payment was successful");  //hasText - text should be exactly same with the result
             assertThat(checkoutPage.confirm()).containsText("Thanks for your order! Your invoice number is "); //containsText check "xxx" containes in the result
         }
@@ -128,21 +107,56 @@ public class CheckoutTest extends BaseTest {
     }
 
 
+    @Nested
+    @DisplayName("Registered user negative scenarios")
+    class invalidPaymentInputs {
+        @BeforeEach
+        void loginCredentials() {
+            loginPage.loginAs("customer@practicesoftwaretesting.com", "welcome01");
+            checkoutPage.checkOutButtonForRegisteredUser();
+            checkoutPage.billingAdress("Sweden", "41712", "3D", "Linnébacken", "Rolfs", "Sweden");
+        }
+
+        @Test
+        void bankTransferNotSucceeds() {
+            checkoutPage.bankTransfer("", "", "aaa");
+            assertThat(checkoutPage.disableCheckPayment()).isDisabled();
+            assertThat(checkoutPage.fieldErrors()).containsText(new String[]{
+                    "Bank name can only contain letters and spaces.",
+                    "Account name can contain letters, numbers, spaces, periods, apostrophes, and hyphens.",
+                    "Account number must be numeric. "
+            });
+        }
+
+        @Test
+        void creditCardPaymentNotSucceeds() {
+
+            checkoutPage.creditCardPayment("aa", "aa", "aa", "Test Test");
+            assertThat(checkoutPage.disableCheckPayment()).isDisabled();
+            assertThat(checkoutPage.fieldErrors()).containsText(new String[]{
+                    "Invalid card number format.",
+                    "Invalid date format. Use MM/YYYY.",
+                    "CVV must be 3 or 4 digits."
+            });
+
+        }
+
+        @Test
+        void giftCardNotSucceeds() {
+
+            checkoutPage.giftCardPayment("wd", "wd");
+            assertThat(checkoutPage.disableCheckPayment()).isDisabled();
+            assertThat(checkoutPage.fieldErrors()).containsText(new String[]{
+                    "Please enter a valid gift card number: exactly 16 letters and/or digits.",
+                    "Please enter a valid validation code: exactly 4 letters and/or digits. ",
+            });
+        }
 
 
 
 
 
+    }
 
-
-
-//    @Nested
-//    @DisplayName("Registered Users negaitve scenarios")
-
-    //Negative Scenarios
-    //use negative scenarios in LoginPage. Expect: checkout shouldn't be proceeded
-    //invalid data with guest users
-
-    //Billing Adress
-    //without info assert Proceed to CheckOut is not clickable - assert
+    //Remain Negative tests: invalid guest inputs and Billing Adress
 }

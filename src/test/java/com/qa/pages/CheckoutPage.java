@@ -143,14 +143,17 @@ public class CheckoutPage {
         bankNameInput.fill(bankName);
         accountNameInput.fill(accountName);
         accountNumberInput.fill(accountNumber);
+
+    }
+
+    public void cofirmClickingPaymentButtons(){
         checkPaymentButton.click();
         confirmPaymentButton.click();
     }
 
     public void cashOnDelivery(){
         paymentMethod.selectOption("cash-on-delivery");
-        checkPaymentButton.click();
-        confirmPaymentButton.click();
+
     }
 
 
@@ -160,16 +163,13 @@ public class CheckoutPage {
         expireDate.fill(expirationDate);
         cvvInput.fill(cvv);
         cardHolderName.fill(holderName);
-        checkPaymentButton.click();
-        confirmPaymentButton.click();
     }
 
 
     public void buyNowPayLaterOption(int month ){
         paymentMethod.selectOption("buy-now-pay-later");
         monthlyInstallment.selectOption(String.valueOf(month));
-        checkPaymentButton.click();
-        confirmPaymentButton.click();
+
     }
 
 
@@ -177,8 +177,6 @@ public class CheckoutPage {
         paymentMethod.selectOption("gift-card");
         giftCardNumInput.fill(giftCardValue);
         validationCodeInput.fill(validationCodeNum);
-        checkPaymentButton.click();
-        confirmPaymentButton.click();
     }
 
 
@@ -204,5 +202,12 @@ public class CheckoutPage {
        return guestLastNameError;
    }
 
+    public Locator fieldErrors() {
+        return page.locator(".alert-danger");
+    }
+
+    public Locator disableCheckPayment(){
+        return checkPaymentButton;
+    }
 
 }
